@@ -3,7 +3,7 @@
 import { login, signup } from "./actions";
 import { useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-import { ShoppingBag, AlertCircle } from "lucide-react";
+import { Utensils, AlertCircle } from "lucide-react";
 import { motion } from "framer-motion";
 
 function LoginForm() {
@@ -91,7 +91,7 @@ export default function LoginPage() {
                 className="flex flex-col items-center mb-10"
             >
                 <div className="w-16 h-16 bg-orange-500 rounded-2xl flex items-center justify-center mb-4 shadow-xl shadow-orange-500/30">
-                    <ShoppingBag className="w-8 h-8 text-white" />
+                    <Utensils className="w-8 h-8 text-white" />
                 </div>
                 <h1 className="text-3xl font-black tracking-tight text-slate-900 mb-2">기프티런치클럽</h1>
                 <p className="text-slate-500 font-medium">프리미엄 선결제 쿠폰 서비스에 오신 것을 환영합니다.</p>

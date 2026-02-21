@@ -41,7 +41,8 @@ export async function processCheckout(restaurantId: string, restaurantName: stri
         .eq('id', user.id);
 
     if (updateError) {
-        return { success: false, message: `결제 처리 중 오류가 발생했습니다: ${updateError.message}` };
+        console.error('Balance update error:', updateError);
+        return { success: false, message: `결제 처리 중 오류가 발생했습니다: ${updateError.message || JSON.stringify(updateError)}` };
     }
 
     // Insert coupon
