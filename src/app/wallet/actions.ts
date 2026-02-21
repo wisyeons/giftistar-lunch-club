@@ -16,10 +16,10 @@ export async function processRecharge(amount: number) {
         .from('users')
         .select('wallet_balance')
         .eq('id', user.id)
-        .single();
+        .maybeSingle();
 
     if (profileError || !profile) {
-        return { success: false, message: '유저 정보를 불러올 수 없습니다.' };
+        return { success: false, message: '서버에 유저 프로필이 없습니다. 새 계정으로 가입하거나 관리자 문의(update_data.sql 실행 필요)가 필요합니다.' };
     }
 
     // 2. Add balance

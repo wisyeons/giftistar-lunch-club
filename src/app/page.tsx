@@ -10,11 +10,13 @@ export default async function Home() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
-  // Get wallet balance from DB if logged in, else mock 0
-  let walletBalance = 0;
+  // Get wallet balance from DB if logged in, else fallback to 50000
+  let walletBalance = 50000;
   if (user) {
     const { data: profile } = await supabase.from('users').select('wallet_balance').eq('id', user.id).single();
-    if (profile) walletBalance = profile.wallet_balance;
+    if (profile && profile.wallet_balance !== null) {
+      walletBalance = profile.wallet_balance;
+    }
   }
 
   // Get real restaurants from Supabase
@@ -42,13 +44,13 @@ export default async function Home() {
       </header>
 
       {/* Hero Section */}
-      <div className="bg-slate-900 rounded-[2rem] p-8 mb-8 relative overflow-hidden text-center shadow-xl shadow-slate-900/10 hover:shadow-2xl transition-shadow duration-300">
-        <div className="absolute -right-10 -top-10 w-32 h-32 bg-orange-400 rounded-full blur-3xl opacity-20 animate-pulse" />
-        <div className="absolute -left-10 -bottom-10 w-32 h-32 bg-purple-500 rounded-full blur-3xl opacity-20" />
+      <div className="bg-gradient-to-br from-orange-400 to-orange-600 rounded-[2rem] p-8 mb-8 relative overflow-hidden text-center shadow-xl shadow-orange-500/20 hover:shadow-2xl transition-shadow duration-300">
+        <div className="absolute -right-10 -top-10 w-32 h-32 bg-white rounded-full blur-3xl opacity-20 animate-pulse" />
+        <div className="absolute -left-10 -bottom-10 w-32 h-32 bg-white rounded-full blur-3xl opacity-20" />
         <div className="relative z-10 flex flex-col items-center">
-          <Utensils className="w-8 h-8 text-orange-400 mb-4" />
-          <h2 className="text-white text-2xl font-black mb-2 tracking-tight">선결제 런치 클럽 패스</h2>
-          <p className="text-slate-400 font-medium text-sm">내 주변 맛집에서 최대 20% 할인받아 식사해보세요.</p>
+          <Utensils className="w-8 h-8 text-white mb-4" />
+          <h2 className="text-white text-2xl font-black mb-2 tracking-tight">기프티 런치클럽 패스</h2>
+          <p className="text-orange-50 font-medium text-sm">내 주변 맛집에서 최대 20% 할인받아 식사해보세요.</p>
         </div>
       </div>
 
@@ -64,10 +66,10 @@ export default async function Home() {
                   <div className="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center text-3xl shadow-inner border border-slate-100 group-hover:scale-105 transition-transform duration-300">
                     {restaurant.image}
                   </div>
-                  <div className="flex flex-col">
+                  <div className="flex flex-col items-start">
                     <h3 className="font-black text-lg text-slate-900 mb-1 leading-tight group-hover:text-orange-600 transition-colors">{restaurant.name}</h3>
                     <p className="text-xs text-slate-500 font-medium line-clamp-1">{restaurant.description}</p>
-                    <span className="inline-block self-start mt-2 text-orange-600 font-black bg-orange-50 px-2.5 py-1 text-xs rounded-lg border border-orange-200">
+                    <span className="inline-block mt-1 text-orange-600 font-black bg-orange-50 px-2.5 py-1 text-xs rounded-lg border border-orange-200">
                       {restaurant.discount_rate}% 할인
                     </span>
                   </div>

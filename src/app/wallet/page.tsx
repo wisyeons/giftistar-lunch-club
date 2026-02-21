@@ -20,7 +20,7 @@ export default async function WalletPage() {
         .eq('id', user.id)
         .single();
 
-    const walletBalance = profile?.wallet_balance || 0;
+    const walletBalance = profile?.wallet_balance ?? 50000;
 
     return (
         <main className="flex-1 flex flex-col pt-8 pb-10 px-6 max-w-md mx-auto w-full relative min-h-screen bg-slate-50">

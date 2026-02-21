@@ -8,8 +8,19 @@ import { motion } from "framer-motion";
 
 function LoginForm() {
     const searchParams = useSearchParams();
-    const message = searchParams?.get("message");
+    const rawMessage = searchParams?.get("message");
     const [isLogin, setIsLogin] = useState(true);
+
+    let message = rawMessage;
+    if (rawMessage === "Invalid login credentials") {
+        message = "이메일이나 비밀번호가 올바르지 않습니다.";
+    } else if (rawMessage?.includes("Password should be")) {
+        message = "비밀번호는 최소 6자 이상이어야 합니다.";
+    } else if (rawMessage?.includes("User already registered")) {
+        message = "이미 가입된 이메일 계정입니다.";
+    } else if (rawMessage?.includes("Email rate limit exceeded")) {
+        message = "가입 횟수가 초과되었습니다. 잠시 후 다시 시도해주세요.";
+    }
 
     return (
         <>
