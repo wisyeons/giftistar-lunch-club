@@ -6,6 +6,7 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { processCheckout } from "./actions";
 
 export default function RestaurantMenuClient({ restaurant, menus, initialBalance }: { restaurant: any, menus: any[], initialBalance: number }) {
     const router = useRouter();
@@ -120,21 +121,27 @@ export default function RestaurantMenuClient({ restaurant, menus, initialBalance
         setSelectedOptions([]);
     };
 
-    const handleCheckout = () => {
+    const handleCheckout = async () => {
         setIsProcessingPay(true);
-        setTimeout(() => {
-            // Note: Since we are moving to DB, our checkoutCart in store is just local, we would normally hit a Next.js Server Action here to save the coupon to DB.
-            // For now, let's keep it syncing locally to match mock flow, but deduct from `initialBalance`.
-            const success = checkoutCart(restaurant.id, restaurant.name);
-            setIsProcessingPay(false);
-            if (success || true) { // temporary bypass for UI presentation until full DB cart flow
+
+        try {
+            // Call server action to process checkout
+            const result = await processCheckout(restaurant.id, restaurant.name, cart, totalCartCost);
+
+            if (result.success) {
                 setPaymentSuccess(true);
+                clearCart(); // clear zustand local cart
                 setTimeout(() => setPaymentSuccess(false), 3000);
                 setIsCartOpen(false);
             } else {
-                alert("캐시 잔액이 부족합니다. 내 지갑에서 충전 후 이용해주세요.");
+                alert(result.message || "결제 중 오류가 발생했습니다.");
             }
-        }, 1200);
+        } catch (error) {
+            console.error(error);
+            alert("알 수 없는 오류가 발생했습니다.");
+        } finally {
+            setIsProcessingPay(false);
+        }
     };
 
     return (

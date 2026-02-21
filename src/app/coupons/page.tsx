@@ -1,12 +1,42 @@
-"use client";
-
-import { useAppStore } from "@/lib/store";
+import { createClient } from "@/lib/supabase/server";
 import { Ticket, Utensils, QrCode } from "lucide-react";
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { redirect } from "next/navigation";
 
-export default function MyCoupons() {
-    const coupons = useAppStore((state) => state.coupons);
+// Force dynamic to always get latest coupons
+export const dynamic = 'force-dynamic';
+
+export default async function MyCoupons() {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+        redirect('/login?message=쿠폰함을 보려면 로그인이 필요합니다.');
+    }
+
+    // Fetch coupons for this user
+    const { data: couponsData, error } = await supabase
+        .from('coupons')
+        .select(`
+            *,
+            coupon_items (*)
+        `)
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+    // Client-expected shape mapping
+    const coupons = (couponsData || []).map(c => ({
+        id: c.id,
+        restaurantName: c.restaurant_name,
+        status: c.status,
+        totalPrice: c.total_price,
+        items: c.coupon_items.map((i: any) => ({
+            menuName: i.menu_name,
+            quantity: i.quantity,
+            price: i.price,
+            options: i.options || []
+        }))
+    }));
 
     const unusedCoupons = coupons.filter(c => c.status === 'Unused');
     const usedCoupons = coupons.filter(c => c.status === 'Used');
@@ -32,20 +62,19 @@ export default function MyCoupons() {
                             <h2 className="text-xs font-bold text-orange-500 mb-4 uppercase tracking-widest pl-1">사용 가능한 쿠폰</h2>
                             <div className="space-y-4">
                                 {unusedCoupons.map((coupon, idx) => (
-                                    <motion.div
+                                    <div
                                         key={coupon.id}
-                                        initial={{ opacity: 0, x: -20 }}
-                                        animate={{ opacity: 1, x: 0 }}
-                                        transition={{ delay: idx * 0.1 }}
+                                        className="animate-fade-in-up"
+                                        style={{ animationDelay: `${idx * 100}ms` }}
                                     >
                                         <Link href={`/coupons/${coupon.id}`}>
                                             <div className="relative bg-orange-50/50 border border-orange-200 rounded-2xl p-5 overflow-hidden flex items-center justify-between group active:scale-[0.98] transition-all shadow-sm">
                                                 {/* Decorative Circle */}
                                                 <div className="absolute -right-6 -top-6 w-24 h-24 bg-orange-200/50 rounded-full blur-2xl group-hover:bg-orange-300/50 transition-all" />
 
-                                                <div className="relative z-10">
-                                                    <p className="text-xs text-orange-600 font-medium mb-1">{coupon.restaurantName}</p>
-                                                    <h3 className="font-bold text-lg text-slate-900 mb-2">
+                                                <div className="relative z-10 w-[70%]">
+                                                    <p className="text-xs text-orange-600 font-medium mb-1 truncate">{coupon.restaurantName}</p>
+                                                    <h3 className="font-bold text-lg text-slate-900 mb-2 truncate">
                                                         {coupon.items[0]?.menuName}
                                                         {coupon.items.length > 1 && ` 외 ${coupon.items.length - 1}건`}
                                                     </h3>
@@ -54,12 +83,12 @@ export default function MyCoupons() {
                                                     </div>
                                                 </div>
 
-                                                <div className="relative z-10 w-12 h-12 bg-orange-500 text-white rounded-full flex items-center justify-center shadow-[0_4px_15px_rgba(249,115,22,0.3)]">
+                                                <div className="relative z-10 w-12 h-12 bg-orange-500 text-white rounded-full flex items-center justify-center shadow-[0_4px_15px_rgba(249,115,22,0.3)] flex-shrink-0">
                                                     <QrCode className="w-5 h-5" />
                                                 </div>
                                             </div>
                                         </Link>
-                                    </motion.div>
+                                    </div>
                                 ))}
                             </div>
                         </section>
@@ -68,24 +97,22 @@ export default function MyCoupons() {
                     {/* Used Section */}
                     {usedCoupons.length > 0 && (
                         <section>
-                            <h2 className="text-xs font-bold text-slate-400 mb-4 uppercase tracking-widest pl-1">사용 완료 쿠폰</h2>
+                            <h2 className="text-xs font-bold text-slate-400 mb-4 uppercase tracking-widest pl-1 mt-6">사용 완료 쿠폰</h2>
                             <div className="space-y-3">
                                 {usedCoupons.map((coupon, idx) => (
-                                    <motion.div
+                                    <div
                                         key={coupon.id}
-                                        initial={{ opacity: 0 }}
-                                        animate={{ opacity: 1 }}
-                                        transition={{ delay: idx * 0.05 }}
-                                        className="bg-slate-50 border border-slate-100 rounded-xl p-4 flex items-center justify-between grayscale opacity-80"
+                                        className="bg-slate-50 border border-slate-100 rounded-xl p-4 flex items-center justify-between grayscale opacity-80 animate-fade-in"
+                                        style={{ animationDelay: `${idx * 50}ms` }}
                                     >
-                                        <div className="flex-1 min-w-0">
+                                        <div className="flex-1 min-w-0 pr-4">
                                             <p className="font-bold text-slate-800 text-sm truncate">{coupon.restaurantName}</p>
                                             <h3 className="font-black text-lg text-slate-900 leading-tight mb-2 truncate">
                                                 {coupon.items[0]?.menuName} {coupon.items.length > 1 ? `외 ${coupon.items.length - 1}건` : ''}
                                             </h3>
 
                                             <div className="space-y-1 mb-3 bg-slate-50 p-2.5 rounded-xl border border-slate-100">
-                                                {coupon.items.map((item, idx) => (
+                                                {coupon.items.map((item: any, idx: number) => (
                                                     <div key={idx} className="flex flex-col text-xs text-slate-600">
                                                         <div className="flex justify-between items-start font-medium leading-relaxed">
                                                             <span>{item.menuName}</span>
@@ -93,7 +120,7 @@ export default function MyCoupons() {
                                                         </div>
                                                         {item.options?.length > 0 && (
                                                             <div className="text-[10px] text-slate-400 pl-2 border-l border-slate-200 ml-1 mt-0.5 space-y-0.5">
-                                                                {item.options.map((opt, i) => (
+                                                                {item.options.map((opt: any, i: number) => (
                                                                     <p key={i}>- {opt.choiceName}</p>
                                                                 ))}
                                                             </div>
@@ -102,8 +129,8 @@ export default function MyCoupons() {
                                                 ))}
                                             </div>
                                         </div>
-                                        <span className="text-[10px] font-black tracking-wider text-slate-400 bg-slate-200 px-2 py-1 rounded">사용됨</span>
-                                    </motion.div>
+                                        <span className="text-[10px] font-black tracking-wider text-slate-400 bg-slate-200 px-2 py-1 rounded flex-shrink-0">사용됨</span>
+                                    </div>
                                 ))}
                             </div>
                         </section>
