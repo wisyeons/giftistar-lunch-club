@@ -1,6 +1,7 @@
 import { getRestaurantById, getMenusByRestaurantId } from "@/lib/supabase/queries";
 import { ArrowLeft, MapPin, Clock } from "lucide-react";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import RestaurantMenuClient from "./RestaurantMenuClient";
 import { createClient } from "@/lib/supabase/server";
 
@@ -11,6 +12,10 @@ export default async function RestaurantMenu({ params }: { params: { id: string 
 
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+        redirect('/login');
+    }
 
     let walletBalance = 50000;
     if (user) {

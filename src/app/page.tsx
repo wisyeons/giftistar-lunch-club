@@ -1,6 +1,7 @@
 import { getRestaurants } from "@/lib/supabase/queries";
 import { Wallet, Ticket, Utensils, ChevronRight, MapPin, Clock, User } from "lucide-react";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 
 // Page must be fully dynamic to grab fresh session
@@ -9,6 +10,10 @@ export const dynamic = 'force-dynamic';
 export default async function Home() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect('/login');
+  }
 
   // Get wallet balance from DB if logged in, else fallback to 50000
   let walletBalance = 50000;
