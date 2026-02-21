@@ -9,6 +9,19 @@ export type Restaurant = {
     openTime: string;
 };
 
+export type MenuOptionChoice = {
+    id: string;
+    name: string;
+    price: number;
+};
+
+export type MenuOptionGroup = {
+    id: string;
+    name: string;
+    isRequired: boolean;
+    choices: MenuOptionChoice[];
+};
+
 export type MenuItem = {
     id: string;
     restaurantId: string;
@@ -17,7 +30,31 @@ export type MenuItem = {
     discountedPrice: number;
     image: string;
     description: string;
+    options?: MenuOptionGroup[];
 };
+
+export const BURGER_OPTIONS: MenuOptionGroup[] = [
+    {
+        id: "opt_bun",
+        name: "빵 변경",
+        isRequired: true,
+        choices: [
+            { id: "bun_1", name: "참깨 브리오슈 번", price: 0 },
+            { id: "bun_2", name: "글루텐프리 번", price: 1000 },
+            { id: "bun_3", name: "오트밀 블랙 번", price: 500 }
+        ]
+    },
+    {
+        id: "opt_topping",
+        name: "토핑 추가",
+        isRequired: false,
+        choices: [
+            { id: "top_1", name: "체다 치즈 추가", price: 1000 },
+            { id: "top_2", name: "베이컨 추가", price: 1500 },
+            { id: "top_3", name: "계란 프라이 추가", price: 1000 }
+        ]
+    }
+];
 
 export const MOCK_RESTAURANTS: Restaurant[] = [
     {
@@ -61,7 +98,8 @@ export const MOCK_MENUS: MenuItem[] = [
         originalPrice: 10000,
         discountedPrice: 8500,
         image: "🍔",
-        description: "100% 소고기 패티 페이퍼처럼 얇게 누른 대표 메뉴"
+        description: "100% 소고기 패티 페이퍼처럼 얇게 누른 대표 메뉴",
+        options: BURGER_OPTIONS
     },
     {
         id: "m_b2",
@@ -70,7 +108,8 @@ export const MOCK_MENUS: MenuItem[] = [
         originalPrice: 14000,
         discountedPrice: 11900,
         image: "🍔",
-        description: "소고기 패티 2장, 체다 치즈 2장의 진한 풍미"
+        description: "소고기 패티 2장, 체다 치즈 2장의 진한 풍미",
+        options: BURGER_OPTIONS
     },
     {
         id: "m_b3",
@@ -79,7 +118,8 @@ export const MOCK_MENUS: MenuItem[] = [
         originalPrice: 12000,
         discountedPrice: 10200,
         image: "🌶️",
-        description: "매콤한 방울 할라피뇨와 특제 바베큐 소스"
+        description: "매콤한 방울 할라피뇨와 특제 바베큐 소스",
+        options: BURGER_OPTIONS
     },
     {
         id: "m_b4",
@@ -88,7 +128,8 @@ export const MOCK_MENUS: MenuItem[] = [
         originalPrice: 13500,
         discountedPrice: 11400,
         image: "🍄",
-        description: "구운 양송이 트러플 오일, 부드러운 스위스 치즈"
+        description: "구운 양송이 트러플 오일, 부드러운 스위스 치즈",
+        options: BURGER_OPTIONS
     },
     {
         id: "m_b5",
@@ -97,7 +138,8 @@ export const MOCK_MENUS: MenuItem[] = [
         originalPrice: 11500,
         discountedPrice: 9700,
         image: "🥓",
-        description: "크리스피 베이컨과 신선한 토마토의 정석 조합"
+        description: "크리스피 베이컨과 신선한 토마토의 정석 조합",
+        options: BURGER_OPTIONS
     },
     {
         id: "m_b6",

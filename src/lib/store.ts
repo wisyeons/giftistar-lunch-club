@@ -2,11 +2,21 @@ import { create } from 'zustand';
 
 export type CouponStatus = 'Unused' | 'Used';
 
+export type SelectedOption = {
+    groupId: string;
+    groupName: string;
+    choiceId: string;
+    choiceName: string;
+    price: number;
+};
+
 export type CouponItem = {
     menuId: string;
     menuName: string;
     price: number;
     quantity: number;
+    options: SelectedOption[];
+    cartItemId: string; // Unique ID for items with different options
 };
 
 export type Coupon = {
@@ -21,10 +31,13 @@ export type Coupon = {
 };
 
 export type CartItem = {
+    cartItemId: string; // Unique ID to distinguish same menu with different options
     menuId: string;
     menuName: string;
-    price: number;
+    price: number; // base price + options price
+    basePrice: number;
     quantity: number;
+    options: SelectedOption[];
 };
 
 interface AppState {
@@ -32,11 +45,12 @@ interface AppState {
     coupons: Coupon[];
     cart: CartItem[];
     addToCart: (item: CartItem) => void;
-    removeFromCart: (menuId: string) => void;
-    updateCartQuantity: (menuId: string, quantity: number) => void;
+    removeFromCart: (cartItemId: string) => void;
+    updateCartQuantity: (cartItemId: string, quantity: number) => void;
     clearCart: () => void;
     checkoutCart: (restaurantId: string, restaurantName: string) => boolean;
     useCoupon: (couponId: string) => void;
+    rechargeWallet: (amount: number) => void;
 }
 
 export const useAppStore = create<AppState>((set, get) => ({
@@ -45,11 +59,11 @@ export const useAppStore = create<AppState>((set, get) => ({
     cart: [],
 
     addToCart: (item) => set((state) => {
-        const existing = state.cart.find(c => c.menuId === item.menuId);
+        const existing = state.cart.find(c => c.cartItemId === item.cartItemId);
         if (existing) {
             return {
                 cart: state.cart.map(c =>
-                    c.menuId === item.menuId
+                    c.cartItemId === item.cartItemId
                         ? { ...c, quantity: c.quantity + item.quantity }
                         : c
                 )
@@ -58,15 +72,19 @@ export const useAppStore = create<AppState>((set, get) => ({
         return { cart: [...state.cart, item] };
     }),
 
-    removeFromCart: (menuId) => set((state) => ({
-        cart: state.cart.filter(c => c.menuId !== menuId)
+    removeFromCart: (cartItemId) => set((state) => ({
+        cart: state.cart.filter(c => c.cartItemId !== cartItemId)
     })),
 
-    updateCartQuantity: (menuId, quantity) => set((state) => ({
-        cart: state.cart.map(c => c.menuId === menuId ? { ...c, quantity } : c)
+    updateCartQuantity: (cartItemId, quantity) => set((state) => ({
+        cart: state.cart.map(c => c.cartItemId === cartItemId ? { ...c, quantity } : c)
     })),
 
     clearCart: () => set({ cart: [] }),
+
+    rechargeWallet: (amount) => set((state) => ({
+        walletBalance: state.walletBalance + amount
+    })),
 
     checkoutCart: (restaurantId, restaurantName) => {
         const { walletBalance, cart, coupons } = get();

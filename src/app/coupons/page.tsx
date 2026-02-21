@@ -78,13 +78,28 @@ export default function MyCoupons() {
                                         transition={{ delay: idx * 0.05 }}
                                         className="bg-slate-50 border border-slate-100 rounded-xl p-4 flex items-center justify-between grayscale opacity-80"
                                     >
-                                        <div>
-                                            <div>
-                                                <p className="text-xs text-slate-500 font-medium mb-0.5">{coupon.restaurantName}</p>
-                                                <h3 className="font-bold text-sm text-slate-700">
-                                                    {coupon.items[0]?.menuName}
-                                                    {coupon.items.length > 1 && ` 외 ${coupon.items.length - 1}건`}
-                                                </h3>
+                                        <div className="flex-1 min-w-0">
+                                            <p className="font-bold text-slate-800 text-sm truncate">{coupon.restaurantName}</p>
+                                            <h3 className="font-black text-lg text-slate-900 leading-tight mb-2 truncate">
+                                                {coupon.items[0]?.menuName} {coupon.items.length > 1 ? `외 ${coupon.items.length - 1}건` : ''}
+                                            </h3>
+
+                                            <div className="space-y-1 mb-3 bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                                                {coupon.items.map((item, idx) => (
+                                                    <div key={idx} className="flex flex-col text-xs text-slate-600">
+                                                        <div className="flex justify-between items-start font-medium leading-relaxed">
+                                                            <span>{item.menuName}</span>
+                                                            <span className="font-bold bg-white px-1.5 py-0.5 rounded shadow-sm text-slate-500">x{item.quantity}</span>
+                                                        </div>
+                                                        {item.options?.length > 0 && (
+                                                            <div className="text-[10px] text-slate-400 pl-2 border-l border-slate-200 ml-1 mt-0.5 space-y-0.5">
+                                                                {item.options.map((opt, i) => (
+                                                                    <p key={i}>- {opt.choiceName}</p>
+                                                                ))}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                ))}
                                             </div>
                                         </div>
                                         <span className="text-[10px] font-black tracking-wider text-slate-400 bg-slate-200 px-2 py-1 rounded">사용됨</span>

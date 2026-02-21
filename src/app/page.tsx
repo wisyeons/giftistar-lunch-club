@@ -18,12 +18,12 @@ export default function Home() {
         className="flex items-center justify-between mb-8"
       >
         <h1 className="text-2xl font-black tracking-tight text-orange-600">기프티런치클럽</h1>
-        <div className="flex items-center gap-2 bg-orange-50 border border-orange-200 px-4 py-2 rounded-full shadow-sm">
+        <Link href="/wallet" className="flex items-center gap-2 bg-orange-50 border border-orange-200 px-4 py-2 rounded-full shadow-sm hover:bg-orange-100 transition-colors cursor-pointer">
           <Wallet className="w-4 h-4 text-orange-500" />
           <span className="font-semibold text-sm text-orange-800">
             {walletBalance.toLocaleString()} <span className="text-orange-600/70 font-normal">원</span>
           </span>
-        </div>
+        </Link>
       </motion.header>
 
       {/* Hero Section */}
