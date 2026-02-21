@@ -18,6 +18,7 @@ export default function RestaurantMenuClient({ restaurant, menus, initialBalance
     const [isCartOpen, setIsCartOpen] = useState(false);
     const [isProcessingPay, setIsProcessingPay] = useState(false);
     const [paymentSuccess, setPaymentSuccess] = useState(false);
+    const [totalDiscountAmount, setTotalDiscountAmount] = useState(0);
 
     // Options Modal State
     const [selectedMenuForOptions, setSelectedMenuForOptions] = useState<typeof menus[0] | null>(null);
@@ -120,9 +121,16 @@ export default function RestaurantMenuClient({ restaurant, menus, initialBalance
         try {
             const result = await processCheckout(restaurant.id, restaurant.name, cart, totalCartCost);
             if (result.success) {
+                let discount = 0;
+                cart.forEach(item => {
+                    const menu = menus.find(m => m.id === item.menuId);
+                    if (menu && menu.originalPrice && menu.discountedPrice) {
+                        discount += (menu.originalPrice - menu.discountedPrice) * item.quantity;
+                    }
+                });
+                setTotalDiscountAmount(discount);
                 setPaymentSuccess(true);
                 clearCart();
-                setTimeout(() => setPaymentSuccess(false), 3000);
                 setIsCartOpen(false);
             } else {
                 alert(result.message || "결제 중 오류가 발생했습니다.");
@@ -218,7 +226,12 @@ export default function RestaurantMenuClient({ restaurant, menus, initialBalance
                                 <CheckCircle2 className="w-10 h-10 text-emerald-500" />
                             </div>
                             <h2 className="text-2xl font-black text-slate-900 mb-2">결제 완료!</h2>
-                            <p className="text-slate-500 font-medium mb-6">쿠폰함에서 구매한 쿠폰을 확인하세요.</p>
+                            <p className="text-slate-500 font-medium mb-2">쿠폰함에서 구매한 쿠폰을 확인하세요.</p>
+                            {totalDiscountAmount > 0 && (
+                                <p className="text-orange-500 font-extrabold text-sm mb-6 bg-orange-50 px-4 py-2 rounded-xl border border-orange-100 shadow-sm w-full">
+                                    총 {totalDiscountAmount.toLocaleString()}원 혜택을 받았어요 🎉
+                                </p>
+                            )}
                             <Link
                                 href="/coupons"
                                 className="w-full py-4 bg-orange-50 text-orange-600 font-bold rounded-2xl hover:bg-orange-100 transition-colors"

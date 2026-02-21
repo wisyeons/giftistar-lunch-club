@@ -199,8 +199,32 @@ export default function CouponDetailClient({ initialCoupon }: { initialCoupon: a
                                 <CheckCircle2 className="w-16 h-16 text-white" />
                             </div>
                             <h2 className="text-3xl font-black text-slate-900 mb-2">주문 접수 완료!</h2>
-                            <p className="text-orange-600 font-bold text-xl mb-4 truncate w-full px-4">
+                            <p className="text-orange-600 font-bold text-xl mb-4 w-full px-4 break-words">
                                 {displayMenuName}
+                            </p>
+
+                            <div className="w-full bg-slate-50 p-4 rounded-xl border border-slate-100 text-left mb-6 max-h-[30vh] overflow-y-auto">
+                                {coupon.items.map((item: any, idx: number) => (
+                                    <div key={idx} className="flex flex-col text-sm border-b border-slate-200 pb-3 mb-3 last:border-0 last:pb-0 last:mb-0">
+                                        <div className="flex justify-between items-start">
+                                            <span className="text-slate-800 font-bold">{item.menuName}</span>
+                                            <span className="font-bold text-slate-900 bg-white border border-slate-200 px-2.5 py-1 rounded text-xs shadow-sm ml-2 flex-shrink-0">
+                                                x{item.quantity}
+                                            </span>
+                                        </div>
+                                        {item.options?.length > 0 && (
+                                            <div className="text-xs text-slate-500 mt-1.5 pl-2 border-l-2 border-slate-300 space-y-0.5">
+                                                {item.options.map((opt: any, i: number) => (
+                                                    <p key={i}>- {opt.choiceName}</p>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+
+                            <p className="text-rose-500 font-bold text-sm bg-rose-50 border border-rose-100 px-4 py-2 rounded-xl mb-6 shadow-sm w-full text-center flex-shrink-0">
+                                이 화면을 매장 직원에게 보여주세요 🤔
                             </p>
 
                             <div className="bg-slate-50 border border-slate-100 p-4 rounded-2xl w-full mb-8 space-y-2">
