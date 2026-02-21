@@ -34,13 +34,14 @@ export async function processCheckout(restaurantId: string, restaurantName: stri
     // 3. Deduct balance & insert coupon & items via discrete calls
     const newBalance = currentBalance - totalCost;
 
-    // Upsert user balance in case they don't exist yet
+    // Update user balance
     const { error: updateError } = await supabase
         .from('users')
-        .upsert({ id: user.id, email: user.email, wallet_balance: newBalance, role: 'user' }, { onConflict: 'id' });
+        .update({ wallet_balance: newBalance })
+        .eq('id', user.id);
 
     if (updateError) {
-        return { success: false, message: '결제 처리 중 오류가 발생했습니다.' };
+        return { success: false, message: `결제 처리 중 오류가 발생했습니다: ${updateError.message}` };
     }
 
     // Insert coupon
