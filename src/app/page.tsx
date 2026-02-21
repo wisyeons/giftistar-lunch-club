@@ -110,6 +110,18 @@ export default async function Home() {
           </div>
         )}
       </div>
+
+      {/* Bottom Nav Placeholder (Fixed) */}
+      <div className="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-white/90 backdrop-blur-xl border-t border-slate-200 p-4 pb-8 flex justify-around shadow-[0_-10px_40px_rgba(0,0,0,0.05)] z-40">
+        <Link href="/" className="flex flex-col items-center gap-1 text-orange-500">
+          <Utensils className="w-6 h-6" />
+          <span className="text-[10px] font-bold">홈</span>
+        </Link>
+        <Link href="/coupons" className="flex flex-col items-center gap-1 text-slate-400 hover:text-orange-500 transition-colors">
+          <Ticket className="w-6 h-6" />
+          <span className="text-[10px] font-medium">내 쿠폰</span>
+        </Link>
+      </div>
     </main>
   );
 }
