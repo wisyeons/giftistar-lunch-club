@@ -16,13 +16,14 @@ export async function processCheckout(restaurantId: string, restaurantName: stri
         .from('users')
         .select('wallet_balance')
         .eq('id', user.id)
-        .single();
+        .maybeSingle();
 
-    if (profileError || !profile) {
-        return { success: false, message: '유저 정보를 불러올 수 없습니다.' };
+    let currentBalance = 50000;
+    if (profile && profile.wallet_balance !== null) {
+        currentBalance = profile.wallet_balance;
     }
 
-    if (profile.wallet_balance < totalCost) {
+    if (currentBalance < totalCost) {
         return { success: false, message: '잔액이 부족합니다.' };
     }
 
@@ -30,13 +31,13 @@ export async function processCheckout(restaurantId: string, restaurantName: stri
     const couponId = `CUP-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
     const expirationDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
 
-    // 3. Deduct balance & insert coupon & items via discrete calls (Supabase doesn't easily support multi-table transactions without custom RPCs, so we do it sequentially here for MVP)
+    // 3. Deduct balance & insert coupon & items via discrete calls
+    const newBalance = currentBalance - totalCost;
 
-    // Deduct balance
+    // Upsert user balance in case they don't exist yet
     const { error: updateError } = await supabase
         .from('users')
-        .update({ wallet_balance: profile.wallet_balance - totalCost })
-        .eq('id', user.id);
+        .upsert({ id: user.id, email: user.email, wallet_balance: newBalance, role: 'user' }, { onConflict: 'id' });
 
     if (updateError) {
         return { success: false, message: '결제 처리 중 오류가 발생했습니다.' };

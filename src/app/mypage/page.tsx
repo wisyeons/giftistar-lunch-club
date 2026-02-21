@@ -24,8 +24,11 @@ export default async function MyPage() {
 
     return (
         <main className="flex-1 flex flex-col pt-8 pb-32 px-6 max-w-md mx-auto w-full relative min-h-screen bg-slate-50">
-            <header className="flex items-center justify-between mb-8">
-                <h1 className="text-2xl font-black tracking-tight text-slate-900">내 정보</h1>
+            <header className="flex items-center gap-4 mb-8">
+                <Link href="/" className="p-2 mb-1 bg-white rounded-full border border-slate-200 shadow-sm hover:bg-slate-50 transition-colors text-slate-700">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-arrow-left"><path d="m12 19-7-7 7-7" /><path d="M19 12H5" /></svg>
+                </Link>
+                <h1 className="text-2xl font-black tracking-tight text-slate-900 leading-none">내 정보</h1>
             </header>
 
             {/* Profile Card */}

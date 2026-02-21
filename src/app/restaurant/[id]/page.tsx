@@ -12,10 +12,10 @@ export default async function RestaurantMenu({ params }: { params: { id: string 
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
-    let walletBalance = 0;
+    let walletBalance = 50000;
     if (user) {
         const { data: profile } = await supabase.from('users').select('wallet_balance').eq('id', user.id).single();
-        if (profile) walletBalance = profile.wallet_balance;
+        if (profile && profile.wallet_balance !== null) walletBalance = profile.wallet_balance;
     }
 
     const restaurant = await getRestaurantById(id);
