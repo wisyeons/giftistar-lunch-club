@@ -1,21 +1,32 @@
 "use client";
 
-import { CheckCircle2, QrCode, Ticket, Home } from "lucide-react";
+import { CheckCircle2, QrCode, Ticket, Home, KeyRound, Delete } from "lucide-react";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { useCouponAction } from "./actions";
 
+const STAFF_CODE = "1234";
+
 export default function CouponDetailClient({ initialCoupon }: { initialCoupon: any }) {
     const [coupon, setCoupon] = useState(initialCoupon);
-    const [scanStep, setScanStep] = useState<"idle" | "confirm_order" | "success">("idle");
+    const [scanStep, setScanStep] = useState<"idle" | "confirm_order" | "code_input" | "success">("idle");
     const [isProcessing, setIsProcessing] = useState(false);
+    const [enteredCode, setEnteredCode] = useState("");
+    const [codeError, setCodeError] = useState("");
 
     const isUsed = coupon.status === 'Used';
 
     const handleScanStart = () => {
         if (isUsed) return;
         setScanStep("confirm_order");
+    };
+
+    const handleCodeInputStart = () => {
+        if (isUsed) return;
+        setEnteredCode("");
+        setCodeError("");
+        setScanStep("code_input");
     };
 
     const handleConfirmOrder = async () => {
@@ -36,9 +47,46 @@ export default function CouponDetailClient({ initialCoupon }: { initialCoupon: a
         setScanStep("idle");
     };
 
+    // Numpad handlers
+    const handleNumPress = (num: string) => {
+        if (enteredCode.length >= 4) return;
+        const next = enteredCode + num;
+        setEnteredCode(next);
+        setCodeError("");
+        if (next.length === 4) {
+            // auto-validate
+            setTimeout(() => validateCode(next), 100);
+        }
+    };
+
+    const handleDelete = () => {
+        setEnteredCode(prev => prev.slice(0, -1));
+        setCodeError("");
+    };
+
+    const validateCode = async (code: string) => {
+        if (code !== STAFF_CODE) {
+            setCodeError("잘못된 코드입니다. 다시 시도해주세요.");
+            setEnteredCode("");
+            return;
+        }
+        setIsProcessing(true);
+        const result = await useCouponAction(coupon.id);
+        setIsProcessing(false);
+        if (result.success) {
+            setCoupon({ ...coupon, status: 'Used' });
+            setScanStep("success");
+        } else {
+            setCodeError(result.message || "오류가 발생했습니다.");
+            setEnteredCode("");
+        }
+    };
+
     const mainItem = coupon.items[0];
     const otherItemsCount = coupon.items.length - 1;
     const displayMenuName = mainItem ? `${mainItem.menuName}${otherItemsCount > 0 ? ` 외 ${otherItemsCount}건` : ''}` : '';
+
+    const numpadKeys = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "", "0", "del"];
 
     return (
         <>
@@ -63,7 +111,7 @@ export default function CouponDetailClient({ initialCoupon }: { initialCoupon: a
                 </p>
                 <h1 className="text-2xl font-black mb-1 leading-tight tracking-tight text-slate-900">{displayMenuName}</h1>
 
-                <div className="flex flex-col gap-2 w-full my-6 bg-slate-50 p-4 rounded-xl border border-slate-100 max-h-48 overflow-y-auto w-full text-left">
+                <div className="flex flex-col gap-2 w-full my-6 bg-slate-50 p-4 rounded-xl border border-slate-100 max-h-48 overflow-y-auto text-left">
                     {coupon.items.map((item: any, idx: number) => (
                         <div key={idx} className="flex flex-col text-sm border-b border-slate-200 pb-2 mb-2 last:border-0 last:pb-0 last:mb-0">
                             <div className="flex justify-between items-start font-medium">
@@ -92,8 +140,8 @@ export default function CouponDetailClient({ initialCoupon }: { initialCoupon: a
                         <p className="text-xs text-slate-400 font-mono mt-2">{coupon.id}</p>
                     </div>
                 ) : (
-                    <div className="flex flex-col items-center w-full">
-                        <p className="text-sm font-medium text-slate-500 mb-5">매장에 방문해 QR 스캔 버튼을 눌러주세요</p>
+                    <div className="flex flex-col items-center w-full gap-3">
+                        <p className="text-sm font-medium text-slate-500">매장에 방문해 아래 방법으로 사용해 주세요</p>
 
                         <button
                             onClick={handleScanStart}
@@ -103,12 +151,20 @@ export default function CouponDetailClient({ initialCoupon }: { initialCoupon: a
                             <span className="relative z-20">QR 스캔하기</span>
                         </button>
 
-                        <p className="mt-6 text-xs text-slate-400 font-mono tracking-widest font-medium">{coupon.id}</p>
+                        <button
+                            onClick={handleCodeInputStart}
+                            className="w-full relative py-4 rounded-2xl font-bold shadow-sm transition-all active:scale-[0.98] flex items-center justify-center gap-2 bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200"
+                        >
+                            <KeyRound className="w-5 h-5" />
+                            <span>직원코드 입력</span>
+                        </button>
+
+                        <p className="mt-2 text-xs text-slate-400 font-mono tracking-widest font-medium">{coupon.id}</p>
                     </div>
                 )}
             </motion.div>
 
-            {/* Confirmation Step 1: "메뉴를 주문하시겠어요?" */}
+            {/* Confirmation Step 1: \"메뉴를 주문하시겠어요?\" */}
             <AnimatePresence>
                 {scanStep === "confirm_order" && (
                     <motion.div
@@ -173,6 +229,91 @@ export default function CouponDetailClient({ initialCoupon }: { initialCoupon: a
                                         {isProcessing ? "처리 중..." : "확인"}
                                     </button>
                                 </div>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* Code Input Step */}
+            <AnimatePresence>
+                {scanStep === "code_input" && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-50 flex justify-center items-end bg-slate-900/60 backdrop-blur-sm sm:items-center sm:p-6"
+                    >
+                        <motion.div
+                            initial={{ y: "100%" }}
+                            animate={{ y: 0 }}
+                            exit={{ y: "100%" }}
+                            transition={{ type: "spring", damping: 25, stiffness: 200 }}
+                            className="bg-white w-full max-w-md rounded-t-3xl sm:rounded-3xl p-6 shadow-2xl pb-10 sm:pb-6"
+                        >
+                            <div className="w-12 h-1.5 bg-slate-200 rounded-full mx-auto mb-6 sm:hidden" />
+
+                            <div className="flex flex-col items-center text-center">
+                                <div className="w-16 h-16 bg-slate-100 text-slate-600 rounded-full flex items-center justify-center mb-4">
+                                    <KeyRound className="w-8 h-8" />
+                                </div>
+                                <h3 className="text-xl font-black text-slate-900 mb-1">직원코드 입력</h3>
+                                <p className="text-sm text-slate-500 mb-6">매장 직원에게 4자리 코드를 받아 입력해주세요.</p>
+
+                                {/* Code Display */}
+                                <div className="flex gap-4 mb-4">
+                                    {[0, 1, 2, 3].map(i => (
+                                        <div key={i} className={`w-14 h-14 rounded-2xl border-2 flex items-center justify-center text-2xl font-black transition-all
+                                            ${enteredCode.length > i ? 'border-orange-500 bg-orange-50 text-orange-600' : 'border-slate-200 bg-slate-50 text-slate-300'}`}>
+                                            {enteredCode[i] ? '●' : '○'}
+                                        </div>
+                                    ))}
+                                </div>
+
+                                {codeError && (
+                                    <p className="text-rose-500 text-sm font-bold mb-4 bg-rose-50 px-4 py-2 rounded-xl border border-rose-100 w-full">
+                                        {codeError}
+                                    </p>
+                                )}
+
+                                {isProcessing && (
+                                    <p className="text-orange-500 text-sm font-bold mb-4">처리 중...</p>
+                                )}
+
+                                {/* Numpad */}
+                                <div className="grid grid-cols-3 gap-3 w-full mt-2">
+                                    {numpadKeys.map((key, idx) => {
+                                        if (key === "") return <div key={idx} />;
+                                        if (key === "del") return (
+                                            <button
+                                                key={idx}
+                                                onClick={handleDelete}
+                                                disabled={isProcessing}
+                                                className="py-4 bg-slate-100 rounded-2xl flex items-center justify-center active:scale-95 transition-transform disabled:opacity-50"
+                                            >
+                                                <Delete className="w-5 h-5 text-slate-600" />
+                                            </button>
+                                        );
+                                        return (
+                                            <button
+                                                key={idx}
+                                                onClick={() => handleNumPress(key)}
+                                                disabled={isProcessing || enteredCode.length >= 4}
+                                                className="py-4 text-xl font-bold bg-white border border-slate-200 rounded-2xl active:scale-95 transition-transform hover:bg-orange-50 hover:border-orange-300 hover:text-orange-600 disabled:opacity-50"
+                                            >
+                                                {key}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+
+                                <button
+                                    onClick={handleCancelOrder}
+                                    disabled={isProcessing}
+                                    className="mt-4 w-full py-3 text-slate-500 font-bold text-sm disabled:opacity-50"
+                                >
+                                    취소
+                                </button>
                             </div>
                         </motion.div>
                     </motion.div>

@@ -86,5 +86,5 @@ export async function processCheckout(restaurantId: string, restaurantName: stri
     revalidatePath('/mypage');
     revalidatePath('/wallet');
 
-    return { success: true, message: '결제 성공!' };
+    return { success: true, message: '결제 성공!', couponId };
 }

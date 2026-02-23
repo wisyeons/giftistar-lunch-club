@@ -19,6 +19,7 @@ export default function RestaurantMenuClient({ restaurant, menus, initialBalance
     const [isProcessingPay, setIsProcessingPay] = useState(false);
     const [paymentSuccess, setPaymentSuccess] = useState(false);
     const [totalDiscountAmount, setTotalDiscountAmount] = useState(0);
+    const [createdCouponId, setCreatedCouponId] = useState<string | null>(null);
 
     // Options Modal State
     const [selectedMenuForOptions, setSelectedMenuForOptions] = useState<typeof menus[0] | null>(null);
@@ -129,6 +130,7 @@ export default function RestaurantMenuClient({ restaurant, menus, initialBalance
                     }
                 });
                 setTotalDiscountAmount(discount);
+                setCreatedCouponId((result as any).couponId || null);
                 setPaymentSuccess(true);
                 clearCart();
                 setIsCartOpen(false);
@@ -234,10 +236,18 @@ export default function RestaurantMenuClient({ restaurant, menus, initialBalance
                             )}
                             <Link
                                 href="/coupons"
-                                className="w-full py-4 bg-orange-50 text-orange-600 font-bold rounded-2xl hover:bg-orange-100 transition-colors"
+                                className="w-full py-4 bg-orange-50 text-orange-600 font-bold rounded-2xl hover:bg-orange-100 transition-colors mb-3"
                             >
                                 내 쿠폰함 가기
                             </Link>
+                            {createdCouponId && (
+                                <Link
+                                    href={`/coupons/${createdCouponId}`}
+                                    className="w-full py-4 bg-orange-500 text-white font-bold rounded-2xl hover:bg-orange-600 transition-colors shadow-lg shadow-orange-500/20"
+                                >
+                                    바로 사용하기
+                                </Link>
+                            )}
                         </div>
                     </motion.div>
                 )}
